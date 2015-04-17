@@ -218,4 +218,91 @@ __currentOp.op__
 
 `query` 操作不仅包括读操作，还包括一些命令例如创建索引、`findAndModify `命令。
 
-v3.0 改动: 使用`insert``update``delete`的写操作分别显示`insert``update``delete`，前版本都在`query`里。
+v3.0 改动： 使用`insert``update``delete`的写操作分别显示`insert``update``delete`，前版本都在`query`里。
+
+__currentOp.ns__
+目标操作的命名空间，构成为 <数据库名>.<集合命>
+
+__currentOp.insert__
+含有要插入的文档，仅当op的值为`insert`时出现。
+使用`db.collection.insert()`插入命令的操作，op的值为query.
+
+__currentOp.query__
+op的值不为`insert`的操作的信息文档，当op类型为"getmore"这类操作时，查询文档也可能为空。
+
+在"query"分类下的"update" "remove" 或读操作，查询文档包含这类操作的预查询信息。
+
+另外一些"query"下的查询命令，查询文档包含命令的详细细节。
+
+v3.0 改动： 前版本写命令被分类在"query"里，并在查询文档中返回写命令信息（例如，预查询，更新）；
+
+__currentOp.planSummary__
+包含查询计划的字符串可以帮助debug执行慢的查询。
+
+__currentOp.client__
+发起操作客户端连接IP地址或者hostname.
+
+__currentOp.locks__
+v3.0改动
+
+locks文档告诉你当前操作所使用的锁的模式和类型，锁类型如下：
+
+`Global` 表示全局锁。
+`MMAPV1Journal` 表示MMAPv1存储引擎使用该锁同步日志写入； 非MMAPv1存储引擎的MMAPV1Journal的模式为空。
+`Database` 表示数据库锁。
+`Collection` 表示集合锁。
+`Metadata` 表示元数据锁。
+`oplog` 表示oplog上的锁。
+
+锁的模式：
+
+`R` 共享锁。
+`W` 排他锁。
+`r` 意图共享锁。
+`w` 意图排他锁。
+
+__currentOp.waitingForLock__
+返回一个布尔值，true表示正在等待锁，false表示已经获得需要的锁。
+
+__currentOp.msg__
+操作的状态和进度信息。如创建索引和做mapreduce时，返回完成进度的百分比。
+
+__currentOp.progress__
+mapreduce或索引操作的进度。progress字段对应msg字段的完成百分比。
+
+currentOp.progress.done
+完成数
+
+currentOp.progress.total
+总数
+
+__currentOp.killPending__
+当操作被标记为需要终止时返回true,当操作进入它的下一个安全终止点时，操作将会被终止。
+
+__currentOp.numYields__
+numYields 返回该操作为了让其他操作完成被置空闲的次数。
+
+当操作需要访问的数据Mongodb还未完全读入内存会被置为空闲，当它在等待Mongodb它将允许其他已经有数据在内存中的操作先完成.
+
+__currentOp.fsyncLock__
+指明数据库当前是否因为fsync操作被锁。
+
+__currentOp.info__
+关于如何从`db.fsyncLock()`中解锁的信息。仅当fsyncLock为true时显示该字段。
+
+__currentOp.lockStats__
+为每一种锁类型和模式提供下列信息：
+
+`currentOp.lockStats.acquireCount`
+指定模式下，操作获取锁的次数。
+
+`currentOp.lockStats.acquireWaitCount`
+操作等待`acquireCount`获取锁的次数，`acquireWaitCount`小于或等于`acquireCount`。
+
+`currentOp.lockStats.timeAcquiringMicros`
+等待获取锁累计微秒数。
+
+`timeAcquiringMicros`除以`acquireWaitCount`可以得到特定的锁模式下平均等待时间。
+
+`currentOp.lockStats.deadlockCount`
+操作在等待获取锁时遭遇死锁的次数。
